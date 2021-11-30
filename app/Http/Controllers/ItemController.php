@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ConnectionAToken;
 use App\Models\Item;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Laravel\Sanctum\Sanctum;
+use App\Models\ConnectionBToken;
 
 class ItemController extends Controller
 {
@@ -57,10 +60,10 @@ class ItemController extends Controller
         $itemIns = new Item;
         if($user->region == 'Cairo') {
             $itemIns->setConnection('mysql');
-            Sanctum::usePersonalAccessTokenModel(App\Models\ConnectionAToken::class);
+            
         } else {
             $itemIns->setConnection('mysql2');
-            Sanctum::usePersonalAccessTokenModel(App\Models\ConnectionBToken::class);
+            Sanctum::usePersonalAccessTokenModel(ConnectionBToken::class);
         }
         $item = $itemIns->create($itemDetails);
         
