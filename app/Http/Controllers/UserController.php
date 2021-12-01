@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Store;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -53,16 +54,28 @@ class UserController extends Controller
             return response()->json(['message' => 'failed to create user'], 400);
         }
 
+        $userIns = new User;
+        $userIns->setConnection('mysql');
+        $foundUser = $userIns->where(['email'=> $request->email])->first();
+        $userIns->setConnection('mysql2');
+        $foundUser2 = $userIns->where(['email'=> $request->email])->first();
+        if($foundUser || $foundUser2) {
+            return response()->json(['message' => 'Email already in use'], 400);
+        }
+
         $userDetails = $request->only(['email', 'name', 'image', 'region', 'phone']);
         $password = Hash::make($request->password);
         $userDetails['password'] = $password;
         $userDetails['balance'] = 0;
 
         $userIns = new User;
+        $storeIns = new Store;
         if($userDetails['region'] == 'Cairo') {
             $userIns->setConnection('mysql');
+            $storeIns->setConnection('mysql');
         } else {
             $userIns->setConnection('mysql2');
+            $storeIns->setConnection('mysql2');
         }
 
 
@@ -71,9 +84,15 @@ class UserController extends Controller
             return response()->json(['message' => 'failed to create user'], 400);
         } 
 
+        $store = $storeIns->create(['name' => $user->name.'\'s Store.', 'user_id' => $user->id]);
+
+        if(!$store) {
+            return response()->json(['message' => 'failed to create store'], 400); 
+        }
+
         return response()->json(['message' => 'created user successfully', 'user' => $user], 201);
     }
-
+ 
     /**
      * Display the specified resource.
      *
@@ -82,7 +101,8 @@ class UserController extends Controller
      */
     public function show(User $user)
     {
-        //
+        // show the user's account and his data.
+
     }
 
     /**

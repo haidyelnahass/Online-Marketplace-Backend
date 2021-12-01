@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Laravel\Sanctum\Sanctum;
 use App\Models\ConnectionBToken;
+use App\Models\Store;
 
 class ItemController extends Controller
 {
@@ -54,18 +55,24 @@ class ItemController extends Controller
         }
 
         $user = auth()->user();
+        $store = $user->store;
 
         $itemDetails = $request->only(['name', 'image', 'description', 'quantity', 'price']);
         $itemDetails['owner_id'] = $user->id;
         $itemIns = new Item;
+        $storeIns = new Store;
         if($user->region == 'Cairo') {
             $itemIns->setConnection('mysql');
+            $storeIns->setConnection('mysql');
             
         } else {
             $itemIns->setConnection('mysql2');
+            $storeIns->setConnection('mysql');
             Sanctum::usePersonalAccessTokenModel(ConnectionBToken::class);
         }
         $item = $itemIns->create($itemDetails);
+
+        $item->stores()->attach($store);
         
         if(!$item) {
             return response()->json(['message' => 'failed to create item'], 400);

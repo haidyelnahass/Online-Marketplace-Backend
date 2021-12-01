@@ -25,6 +25,7 @@ class CreateItemsTable extends Migration
             $table->unsignedBigInteger('creator_id')->nullable();
             $table->foreign('creator_id')->references('id')->on('users');
 
+
             $table->timestamps();
         });
         Schema::connection('mysql')->create('items', function (Blueprint $table) {
