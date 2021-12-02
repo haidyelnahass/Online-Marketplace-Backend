@@ -50,16 +50,16 @@ class UserController extends Controller
 
         $validator = Validator::make($request->all(), $rules);
 
-        if($validator->fails()) {
+        if ($validator->fails()) {
             return response()->json(['message' => 'failed to create user'], 400);
         }
 
         $userIns = new User;
         $userIns->setConnection('mysql');
-        $foundUser = $userIns->where(['email'=> $request->email])->first();
+        $foundUser = $userIns->where(['email' => $request->email])->first();
         $userIns->setConnection('mysql2');
-        $foundUser2 = $userIns->where(['email'=> $request->email])->first();
-        if($foundUser || $foundUser2) {
+        $foundUser2 = $userIns->where(['email' => $request->email])->first();
+        if ($foundUser || $foundUser2) {
             return response()->json(['message' => 'Email already in use'], 400);
         }
 
@@ -70,7 +70,7 @@ class UserController extends Controller
 
         $userIns = new User;
         $storeIns = new Store;
-        if($userDetails['region'] == 'Cairo') {
+        if ($userDetails['region'] == 'Cairo') {
             $userIns->setConnection('mysql');
             $storeIns->setConnection('mysql');
         } else {
@@ -80,19 +80,19 @@ class UserController extends Controller
 
 
         $user = $userIns->create($userDetails);
-        if(!$user) {
+        if (!$user) {
             return response()->json(['message' => 'failed to create user'], 400);
-        } 
+        }
 
-        $store = $storeIns->create(['name' => $user->name.'\'s Store.', 'user_id' => $user->id]);
+        $store = $storeIns->create(['name' => $user->name . '\'s Store.', 'user_id' => $user->id]);
 
-        if(!$store) {
-            return response()->json(['message' => 'failed to create store'], 400); 
+        if (!$store) {
+            return response()->json(['message' => 'failed to create store'], 400);
         }
 
         return response()->json(['message' => 'created user successfully', 'user' => $user], 201);
     }
- 
+
     /**
      * Display the specified resource.
      *
@@ -139,7 +139,8 @@ class UserController extends Controller
         //
     }
 
-    public function login(Request $request) {
+    public function login(Request $request)
+    {
         $fields = $request->validate([
             'email' => 'required|string|email',
             'password' => 'required|string'
@@ -149,7 +150,7 @@ class UserController extends Controller
         $userIns = new User;
         $userIns->setConnection('mysql');
         $user = $userIns->where('email', $fields['email'])->first();
-        if(!$user) {
+        if (!$user) {
             $userIns->setConnection('mysql2');
             $user = $userIns->where('email', $fields['email'])->first();
         }
@@ -171,12 +172,12 @@ class UserController extends Controller
         return response($response, 200);
     }
 
-    public function addBalance(Request $request, User $user) {
+    public function addBalance(Request $request, User $user)
+    {
 
-
-        // if(auth()->user()->email != $user->email) {
-        //     return response()->json(['message' => 'Unauthorized'], 401);
-        // }
+        if(auth()->user()->email != $user->email) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
         $user = auth()->user();
         $rules = [
             "amount" => "required",
@@ -184,7 +185,7 @@ class UserController extends Controller
 
         $validator = Validator::make($request->all(), $rules);
 
-        if($validator->fails()) {
+        if ($validator->fails()) {
             return response()->json(['message' => 'failed to add balance'], 400);
         }
 
@@ -200,9 +201,28 @@ class UserController extends Controller
         $user->update();
 
         return response()->json(['message' => 'balance added succesfully'], 200);
-
-
-
-
+    }
+    public function getInfo($id)
+    { //el ownerbta3a //not solid //solid
+        $user = Item::where('owner_id', $id)
+            ->select('name', 'description', 'image')
+            ->get();
+        $query = ['Owner_id' => $id, 'creator_id' =>  $id,];   //not solid
+        $results = Item::where($query)
+            ->select('name', 'description', 'image')
+            ->get();
+        $user1 = Item::where('creator_id', $id)
+            ->select('name', 'description', 'image')
+            ->get();
+        return response()->json([$user, $results, $user1]);
+    }
+    public function findSearch()
+    {
+        $search = Input::get("search");
+        $test = Item::where('name', 'LIKE', '%' . $search . '%');
+        if (count($test) > 0)
+            return response()->json($test);
+        else
+            return "No Details found. Try to search again !";
     }
 }

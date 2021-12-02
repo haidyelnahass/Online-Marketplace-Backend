@@ -30,7 +30,7 @@ class ChangePersonalAccessTokenTable
             $accessToken = $model::findToken($token);
             if (!$accessToken) {
                 Sanctum::usePersonalAccessTokenModel(ConnectionBToken::class);
-                Config::set('database.connections.mysql', 'mysql2');
+                Config::set('database.default', 'mysql2');
                 $model = Sanctum::$personalAccessTokenModel;
                 $accessToken = $model::findToken($token);
             }

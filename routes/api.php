@@ -14,16 +14,16 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::post('/signup','App\Http\Controllers\UserController@store')->middleware('guest');
-Route::post('/login','App\Http\Controllers\UserController@login')->middleware('guest');
+Route::post('/signup', 'App\Http\Controllers\UserController@store')->middleware('guest');
+Route::post('/login', 'App\Http\Controllers\UserController@login')->middleware('guest');
 
-    
+
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::apiResource('/items', 'App\Http\Controllers\ItemController');
-    Route::post('/users/{user}/addBalance','App\Http\Controllers\UserController@addBalance');
-    Route::get('/users/{user}','App\Http\Controllers\UserController@show');
-
-    
+    Route::post('/users/{user}/addBalance', 'App\Http\Controllers\UserController@addBalance');
+    Route::get('/users/{user}', 'App\Http\Controllers\UserController@show');
+    Route::get('/info/{id}', 'UserController@getInfo');
+    Route::post('/findSearch', 'UserController@findSearch');
 });
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
