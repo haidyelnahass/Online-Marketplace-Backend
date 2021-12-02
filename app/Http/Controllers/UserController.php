@@ -170,4 +170,39 @@ class UserController extends Controller
 
         return response($response, 200);
     }
+
+    public function addBalance(Request $request, User $user) {
+
+
+        // if(auth()->user()->email != $user->email) {
+        //     return response()->json(['message' => 'Unauthorized'], 401);
+        // }
+        $user = auth()->user();
+        $rules = [
+            "amount" => "required",
+        ];
+
+        $validator = Validator::make($request->all(), $rules);
+
+        if($validator->fails()) {
+            return response()->json(['message' => 'failed to add balance'], 400);
+        }
+
+        $user->balance = $user->balance + $request->amount;
+        // $userIns = new User;
+        // $userIns->setConnection('mysql');
+        // $userI = $userIns->where('email', $user->email)->first();
+        // if(!$userI) {
+        //     $userIns->setConnection('mysql2');
+        //     $userI = $userIns->where('email', $userI->email)->first();
+        // }
+
+        $user->update();
+
+        return response()->json(['message' => 'balance added succesfully'], 200);
+
+
+
+
+    }
 }

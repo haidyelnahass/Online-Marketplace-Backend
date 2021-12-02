@@ -20,7 +20,9 @@ Route::post('/login','App\Http\Controllers\UserController@login')->middleware('g
     
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::apiResource('/items', 'App\Http\Controllers\ItemController');
+    Route::post('/users/{user}/addBalance','App\Http\Controllers\UserController@addBalance');
     Route::get('/users/{user}','App\Http\Controllers\UserController@show');
+
     
 });
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
