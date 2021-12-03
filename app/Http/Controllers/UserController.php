@@ -2,12 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Item;
+use App\Models\Payment;
 use App\Models\Store;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Laravel\Sanctum\Sanctum;
+use Symfony\Component\Console\Input\Input;
 
 class UserController extends Controller
 {
@@ -200,29 +203,37 @@ class UserController extends Controller
 
         $user->update();
 
-        return response()->json(['message' => 'balance added succesfully'], 200);
+        $payment = Payment::create([
+            'amount' => $request->amount,
+            'type' => 'Add Balance',
+            'user_id' => $user->id,
+            'date' => now(),
+
+        ]);
+
+        return response()->json(['message' => 'balance added successfully'], 200);
     }
-    public function getInfo($id)
+    public function getInfo(User $user)
     { //el ownerbta3a //not solid //solid
-        $user = Item::where('owner_id', $id)
-            ->select('name', 'description', 'image')
-            ->get();
-        $query = ['Owner_id' => $id, 'creator_id' =>  $id,];   //not solid
-        $results = Item::where($query)
-            ->select('name', 'description', 'image')
-            ->get();
-        $user1 = Item::where('creator_id', $id)
-            ->select('name', 'description', 'image')
-            ->get();
-        return response()->json([$user, $results, $user1]);
+        $loggedInUser = auth()->user();
+        $balance = $loggedInUser->balance;
+        $ownedItems = $loggedInUser->ownedItems;
+        // $query = ['Owner_id' => $id, 'creator_id' =>  $id,];   //not solid
+        // $results = Item::where($query)
+        //     ->select('name', 'description', 'image')
+        //     ->get();
+        $createdItems = $loggedInUser->createdItems;
+        return response()->json(['balance' => $balance , 'Bought items' => $ownedItems, 'Created items' => $createdItems]);
     }
-    public function findSearch()
-    {
-        $search = Input::get("search");
-        $test = Item::where('name', 'LIKE', '%' . $search . '%');
-        if (count($test) > 0)
-            return response()->json($test);
-        else
-            return "No Details found. Try to search again !";
-    }
+    // public function findSearch()
+    // {
+    //     $search = Input::get("search");
+    //     $test = Item::where('name', 'LIKE', '%' . $search . '%');
+    //     if (count($test) > 0)
+    //         return response()->json($test);
+    //     else
+    //         return "No Details found. Try to search again !";
+    // }
 }
+// root password: 6@xQ?80:9cQ8^4eW6MX.8%+DwCsOlt?i
+//root password: admin123

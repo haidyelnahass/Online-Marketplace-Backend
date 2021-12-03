@@ -9,6 +9,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class Payment extends Model
 {
     use HasFactory;
+    
+    protected $guarded = [];
 
     public function item(): BelongsTo {
         return $this->belongsTo(Item::class);

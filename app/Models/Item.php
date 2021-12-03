@@ -13,14 +13,14 @@ class Item extends Model
     use HasFactory;
     protected $guarded = [];
 
-    public function owner(): BelongsTo {
-        return $this->belongsTo(User::class, 'owner_id');
+    public function owners(): BelongsToMany {
+        return $this->belongsToMany(User::class, 'item_owner', 'item_id','owner_id')->withTimestamps();
     }
     public function creator(): BelongsTo {
         return $this->belongsTo(User::class, 'creator_id');
     }
     public function stores(): BelongsToMany {
-        return $this->belongsToMany(Store::class,'items_stores');
+        return $this->belongsToMany(Store::class,'items_stores')->withTimestamps();
     }
 
     public function payment(): HasMany {

@@ -20,7 +20,7 @@ class ItemFactory extends Factory
             'quantity' => $this->faker->randomDigit(),
             'description' => $this->faker->sentence(),
             'image' => $this->faker->url(),
-            'owner_id' => User::all()->random()->id,
+            'creator_id' => User::all()->random()->id,
         ];
     }
 }

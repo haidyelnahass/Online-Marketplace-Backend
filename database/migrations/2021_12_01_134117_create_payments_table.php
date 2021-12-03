@@ -20,7 +20,7 @@ class CreatePaymentsTable extends Migration
             $table->dateTime('date');
             $table->unsignedBigInteger('user_id');
             $table->foreign('user_id')->references('id')->on('users');
-            $table->unsignedBigInteger('item_id');
+            $table->unsignedBigInteger('item_id')->nullable();
             $table->foreign('item_id')->references('id')->on('items');
             $table->timestamps();
         });
@@ -31,7 +31,7 @@ class CreatePaymentsTable extends Migration
             $table->dateTime('date');
             $table->unsignedBigInteger('user_id');
             $table->foreign('user_id')->references('id')->on('users');
-            $table->unsignedBigInteger('item_id');
+            $table->unsignedBigInteger('item_id')->nullable();
             $table->foreign('item_id')->references('id')->on('items');
             $table->timestamps();
         });
