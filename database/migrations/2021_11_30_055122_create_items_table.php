@@ -32,6 +32,7 @@ class CreateItemsTable extends Migration
             $table->foreign('item_id')->references('id')->on('items');
             $table->unsignedBigInteger('owner_id')->nullable();
             $table->foreign('owner_id')->references('id')->on('users');
+            $table->float('qty');
             $table->timestamps();
         });
         Schema::connection('mysql')->create('items', function (Blueprint $table) {
@@ -54,6 +55,7 @@ class CreateItemsTable extends Migration
             $table->foreign('item_id')->references('id')->on('items');
             $table->unsignedBigInteger('owner_id')->nullable();
             $table->foreign('owner_id')->references('id')->on('users');
+            $table->float('qty');
             $table->timestamps();
         });
     }

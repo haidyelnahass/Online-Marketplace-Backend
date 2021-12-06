@@ -21,18 +21,19 @@ class ItemController extends Controller
     public function index()
     {
         $items = Item::all();
-        if(request('text')) {
-            $filteredItems = Item::where('name', 'LIKE', request('text') .'%')->get();
+        if (request('text')) {
+            $filteredItems = Item::where('name', 'LIKE', request('text') . '%')->get();
             return response()->json(['items' => $filteredItems]);
         }
         return response()->json(['items' => $items]);
     }
 
-    public function getMyItems() {
+    public function getMyItems()
+    {
         $user = auth()->user();
         $itemsCreated = $user->createdItems;
         $itemsOwned = $user->ownedItems;
-        return response()->json(['Created Items' => $itemsCreated , 'Owned Items' => $itemsOwned]);
+        return response()->json(['Created Items' => $itemsCreated, 'Owned Items' => $itemsOwned]);
     }
 
     /**
@@ -63,7 +64,7 @@ class ItemController extends Controller
 
         $validator = Validator::make($request->all(), $rules);
 
-        if($validator->fails()) {
+        if ($validator->fails()) {
             return response()->json(['message' => 'failed to create item'], 400);
         }
 
@@ -74,22 +75,22 @@ class ItemController extends Controller
         $itemDetails['creator_id'] = $user->id;
         $itemIns = new Item;
         $storeIns = new Store;
-        if($user->region == 'Cairo') {
+        if ($user->region == 'Cairo') {
             $itemIns->setConnection('mysql');
             $storeIns->setConnection('mysql');
-            
         } else {
             $itemIns->setConnection('mysql2');
-            $storeIns->setConnection('mysql');
-            Sanctum::usePersonalAccessTokenModel(ConnectionBToken::class);
+            $storeIns->setConnection('mysql2');
         }
         $item = $itemIns->create($itemDetails);
 
+        $item->owners()->attach($user, ['qty' => $item->quantity]);
+
         $item->stores()->attach($store);
-        
-        if(!$item) {
+
+        if (!$item) {
             return response()->json(['message' => 'failed to create item'], 400);
-        } 
+        }
 
         return response()->json(['message' => 'created item successfully', 'item' => $item], 201);
     }
@@ -125,11 +126,11 @@ class ItemController extends Controller
      */
     public function update(Request $request, Item $item)
     {
-        if(!$item) {
+        if (!$item) {
             return response()->json(['message' => 'Item not found!', 404]);
         }
 
-        if($item->creator != auth()->user()) {
+        if ($item->creator != auth()->user()) {
             return response()->json(['message' => 'Unauthorized!', 401]);
         }
         $rules = [
@@ -142,17 +143,17 @@ class ItemController extends Controller
 
         $validator = Validator::make($request->all(), $rules);
 
-        if($validator->fails()) {
+        if ($validator->fails()) {
             return response()->json(['message' => 'failed to edit item'], 400);
         }
 
 
         $itemDetails = $request->only(['name', 'image', 'description', 'quantity', 'price']);
         $newItem = $item->update($itemDetails);
-        
-        if(!$newItem) {
+
+        if (!$newItem) {
             return response()->json(['message' => 'failed to edit item'], 400);
-        } 
+        }
 
         return response()->json(['message' => 'edited item successfully'], 200);
     }
@@ -170,23 +171,26 @@ class ItemController extends Controller
     }
 
 
-    public function buyItem(Request $request, Item $item) {
+    public function buyItem(Request $request, Item $item)
+    {
 
 
-        if(!$item) {
+        if (!$item) {
             return response()->json(['message' => 'Item not found!'], 404);
         }
 
-        if($item->owner == auth()->user()) {
-            return response()->json(['message' => 'You cannot buy your own item!'], 400);
-        }
+        
 
-        if($item->quantity == 0) {
+        // if ($item->owner == auth()->user()) {
+        //     return response()->json(['message' => 'You cannot buy your own item!'], 400);
+        // }
+
+        if ($item->quantity == 0) {
             return response()->json(['message' => 'Item is out of stock!'], 400);
         }
 
         $user = auth()->user();
-        if($user->balance < $item->price) {
+        if ($user->balance < $item->price) {
             return response()->json(['message' => 'You don\'t have enough money to buy this!'], 400);
         } else {
             //take money from the user
@@ -197,8 +201,10 @@ class ItemController extends Controller
 
             $creator = $item->creator;
             $creator->balance = $creator->balance + $item->price;
+            $creator->update();
 
-            $item->owners()->attach($user);
+            $item->owners()->attach($user, ['qty' => 1]);
+            $item->stores()->sync($user->store);
 
             $payment = Payment::create([
                 'amount' => $item->price,
@@ -209,7 +215,85 @@ class ItemController extends Controller
             ]);
 
 
-            return response()->json(['message' => 'Item bought successfully'], 201);            
+            return response()->json(['message' => 'Item bought successfully'], 201);
         }
     }
+
+    public function addItem(Request $request, Item $item) {
+
+        if(!$item) {
+            return response()->json(['message' => 'no item found'], 400);
+        }
+
+        $rules = [
+            'quantity' => 'required'
+        ];
+
+
+        $validator = Validator::make($request->all(), $rules);
+
+        if($validator->fails()) {
+            return response()->json(['message' => 'failed to add item'], 400);
+        }
+
+        $quantity = $request->quantity;
+
+
+
+
+        $creator = $item->creator;
+
+        
+        $user = auth()->user();
+        if($creator->id == $user->id) {
+            return response()->json(['message' => 'cannot add your own item!'], 400);
+        }
+
+        
+        
+        
+        $owners = $item->owners;
+        
+        $currentOwner = $owners->where('id', $user->id)->first();
+        if(!$currentOwner) {
+            
+            $item->owners()->attach($user->id,  ['qty' => $quantity]);
+            $item->stores()->attach($user->store->id);
+        } else {
+            
+            foreach($currentOwner->ownedItems as $I) {
+                if($I->id == $item->id) {
+                    $qty = $I->pivot->qty;
+                    $item->owners()->syncWithoutDetaching([$currentOwner->id =>  ['qty' => $qty + $quantity]]);
+                }
+            }
+
+        }
+
+        $owner = $owners->where('id' , $creator->id)->first();
+
+        foreach($owner->ownedItems as $I) {
+            if($I->id == $item->id) {
+                $qty = $I->pivot->qty;
+                if(($qty - $quantity) <= 0) {
+                    $item->owners()->detach($owner);
+
+                } else {
+                    
+                    $item->owners()->syncWithoutDetaching([$owner->id =>  ['qty' => $qty - $quantity]]);
+                }
+            }
+        }
+
+        return response()->json(['message' => 'added item to store']);
+        
+
+
+
+
+
+    }
+
+
+
 }

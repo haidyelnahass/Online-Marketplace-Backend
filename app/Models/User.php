@@ -48,7 +48,7 @@ class User extends Authenticatable
 
     public function ownedItems(): BelongsToMany
     {
-        return $this->belongsToMany(Item::class, 'item_owner', 'owner_id', 'item_id',);
+        return $this->belongsToMany(Item::class, 'item_owner', 'owner_id', 'item_id',)->withPivot('qty');
     }
 
     public function store(): HasOne
