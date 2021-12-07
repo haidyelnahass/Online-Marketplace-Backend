@@ -29,6 +29,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/findSearch', 'App\Http\Controllers\UserController@findSearch');
     Route::post('/items/{item}/add', 'App\Http\Controllers\ItemController@addItem');
     Route::get('/history', 'App\Http\Controllers\PaymentController@getPaymentHistory');
+    Route::get('/myHistory', 'App\Http\Controllers\PaymentController@getMyPaymentHistory');
 });
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();

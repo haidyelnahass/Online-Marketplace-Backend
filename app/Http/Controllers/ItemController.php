@@ -130,7 +130,7 @@ class ItemController extends Controller
             return response()->json(['message' => 'Item not found!', 404]);
         }
 
-        if ($item->creator != auth()->user()) {
+        if ($item->creator->id != auth()->user()->id) {
             return response()->json(['message' => 'Unauthorized!', 401]);
         }
         $rules = [

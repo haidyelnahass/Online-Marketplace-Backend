@@ -12,4 +12,9 @@ class PaymentController extends Controller
 
         return $payments;
     }
+    public function getMyPaymentHistory() {
+        $payments = Payment::where('user_id', auth()->user()->id)->get();
+
+        return $payments;
+    }
 }

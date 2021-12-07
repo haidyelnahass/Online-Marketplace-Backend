@@ -88,12 +88,12 @@ class StoreController extends Controller
         $user = auth()->user();
         $itemsCreated = $user->createdItems;
         $itemsOwned = $user->ownedItems;
-        return response()->json(['Created Items' => $itemsCreated, 'Owned Items' => $itemsOwned]);
+        return response()->json(['Store' => $user->store, 'Created Items' => $itemsCreated, 'Owned Items' => $itemsOwned]);
     }
 
     public function getStore(Store $store) {
-        $items =  $store->items;
+        $store->items;
 
-        return $items;
+        return response()->json(['store' => $store]);
     }
 }
