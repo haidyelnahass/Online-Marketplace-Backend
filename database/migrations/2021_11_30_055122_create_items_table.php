@@ -29,7 +29,7 @@ class CreateItemsTable extends Migration
         Schema::connection('mysql2')->create('item_owner', function (Blueprint $table) {
 
             $table->unsignedBigInteger('item_id')->nullable();
-            $table->foreign('item_id')->references('id')->on('items');
+            $table->foreign('item_id')->references('id')->on('items')->onDelete('cascade');
             $table->unsignedBigInteger('owner_id')->nullable();
             $table->foreign('owner_id')->references('id')->on('users')->onDelete('cascade');
             $table->float('qty');
